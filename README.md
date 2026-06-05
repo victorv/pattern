@@ -114,7 +114,7 @@ Aside from websocket listeners (see below), all HTTP calls to the Pattern server
 
 ### Webhooks and Websockets
 
-The Pattern server is configured to send a message over a websocket whenever it receives a webhook from Plaid. On the client side have websocket listeners defined in `src/components/Sockets.jsx` that wait for these messages and update data in real time accordingly.
+The Pattern server is configured to send a message over a websocket whenever it receives a webhook from Plaid. On the client side, we have websocket listeners defined in `src/components/Sockets.jsx` that wait for these messages and update data in real time accordingly.
 
 ### Admin
 
@@ -159,7 +159,7 @@ The special test credentials **`user_transactions_dynamic`** can be used togethe
 
 1. Create an account in the Pattern app (with any username)
 2. Link a bank account using a **non-OAuth test institution** such as **First Platypus Bank** (`ins_109508`)
-   - Note: OAuth institutions like most major banks and Playtypus OAuth Bank will not work with these test credentials - you will be able to complete Link, but you will see the same data as the regular `user_good` test user and not the special `user_transactions_dynamic` data.
+   - Note: OAuth institutions like most major banks and Platypus OAuth Bank will not work with these test credentials - you will be able to complete Link, but you will see the same data as the regular `user_good` test user and not the special `user_transactions_dynamic` data.
 3. When prompted for credentials in the Plaid Link flow, enter:
    - **Username:** `user_transactions_dynamic`
    - **Password:** any non-blank password
