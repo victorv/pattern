@@ -50,8 +50,8 @@ const TransactionsContext = createContext<TransactionsContextShape>(
 /**
  * @desc Maintains the Transactions context state and provides functions to update that state.
  *
- *  The transactions requests below are made from the database only.  Calls to the Plaid transactions/get endpoint are only
- *  made following receipt of transactions webhooks such as 'DEFAULT_UPDATE' or 'INITIAL_UPDATE'.
+ *  The transactions requests below are made from the database only.  Calls to the Plaid /transactions/sync endpoint are only
+ *  made following receipt of the 'SYNC_UPDATES_AVAILABLE' transactions webhook.
  */
 export function TransactionsProvider(props: any) {
   const [transactionsById, dispatch] = useReducer(reducer, initialState);
