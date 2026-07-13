@@ -49,7 +49,7 @@ export interface TransactionType {
   plaid_transaction_id: string;
   plaid_category_id: string;
   category: string;
-  type: string;
+  payment_channel: string;
   name: string;
   amount: number;
   iso_currency_code: string;
