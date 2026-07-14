@@ -44,7 +44,7 @@ router.post(
       userId
     );
     if (existingItem)
-      throw new Boom('You have already linked an item at this institution.', {
+      throw new Boom.Boom('You have already linked an item at this institution.', {
         statusCode: 409,
       });
 
@@ -63,10 +63,16 @@ router.post(
 
     // Make an initial call to fetch transactions and enable SYNC_UPDATES_AVAILABLE webhook sending
     // for this item.
-    updateTransactions(itemId).then(() => {
-      // Notify frontend to reflect any transactions changes.
-      req.io.emit('NEW_TRANSACTIONS_DATA', { itemId: newItem.id });
-    });
+    updateTransactions(itemId)
+      .then(() => {
+        // Notify frontend to reflect any transactions changes.
+        req.io.emit('NEW_TRANSACTIONS_DATA', { itemId: newItem.id });
+      })
+      .catch(err =>
+        console.error(
+          `Error updating transactions for new item ${itemId}: ${err.message}`
+        )
+      );
 
     res.json(sanitizeItems(newItem));
   })
@@ -101,7 +107,7 @@ router.put(
 
     if (status) {
       if (!isValidItemStatus(status)) {
-        throw new Boom(
+        throw new Boom.Boom(
           'Cannot set item status. Please use an accepted value.',
           {
             statusCode: 400,
@@ -113,7 +119,7 @@ router.put(
       const item = await retrieveItemById(itemId);
       res.json(sanitizeItems(item));
     } else {
-      throw new Boom('You must provide updated item information.', {
+      throw new Boom.Boom('You must provide updated item information.', {
         statusCode: 400,
         acceptedKeys: ['status'],
       });
@@ -134,18 +140,18 @@ router.delete(
   asyncWrapper(async (req, res) => {
     const { itemId } = req.params;
     const { plaid_access_token: accessToken } = await retrieveItemById(itemId);
-    /* eslint-disable camelcase */
     try {
-      const response = await plaid.itemRemove({
-        access_token: accessToken,
-      });
-      const removed = response.data.removed;
-      const status_code = response.data.status_code;
+      await plaid.itemRemove({ access_token: accessToken });
     } catch (error) {
-      if (!removed)
-        throw new Boom('Item could not be removed in the Plaid API.', {
-          statusCode: status_code,
-        });
+      // If the item can't be removed in Plaid, surface the error and leave the
+      // local record in place rather than deleting it while the token is still live.
+      console.error(
+        `Error removing item ${itemId} from Plaid:`,
+        error.response?.data ?? error.message
+      );
+      throw new Boom.Boom('Item could not be removed in the Plaid API.', {
+        statusCode: 500,
+      });
     }
     await deleteItem(itemId);
 

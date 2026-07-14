@@ -120,7 +120,9 @@ class PlaidClientWrapper {
         await log(clientMethod, args, res);
         return res;
       } catch (err) {
-        await log(clientMethod, args, err.response.data);
+        // err.response is absent for non-HTTP failures (network errors, timeouts,
+        // errors thrown inside the SDK); guard so logging never masks the real error.
+        await log(clientMethod, args, err.response?.data ?? { message: err.message });
         throw err;
       }
     };

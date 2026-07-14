@@ -39,29 +39,33 @@ const fetchTransactionUpdates = async (plaidItemId) => {
   let hasMore = true;
 
   const batchSize = 100;
-  try {
-    // Iterate through each page of new transaction updates for item
-    /* eslint-disable no-await-in-loop */
-    while (hasMore) {
-      const request = {
-        access_token: accessToken,
-        cursor: cursor,
-        count: batchSize,
-      };
-      const response = await plaid.transactionsSync(request)
-      const data = response.data;
-      // Add this page of results
-      added = added.concat(data.added);
-      modified = modified.concat(data.modified);
-      removed = removed.concat(data.removed);
-      hasMore = data.has_more;
-      // Update cursor to the next cursor
-      cursor = data.next_cursor;
-    }
-  } catch (err) {
-    console.error(`Error fetching transactions: ${err.message}`);
-    cursor = lastCursor;
+  // A /transactions/sync response is a diff (added/modified/removed) tied to the
+  // cursor we sent. The whole diff plus the cursor advance is one atomic unit: it
+  // must be applied all-or-nothing. We therefore accumulate every page here before
+  // returning, and if any page fails we let the error propagate instead of
+  // swallowing it. That leaves the caller with nothing to persist and the cursor
+  // unadvanced, so the next sync (or Plaid's webhook retry) resumes cleanly from
+  // lastCursor. If we instead persisted a partial page and advanced the cursor,
+  // the un-fetched transactions would be skipped forever, since the cursor would
+  // have moved past them.
+  /* eslint-disable no-await-in-loop */
+  while (hasMore) {
+    const request = {
+      access_token: accessToken,
+      cursor: cursor,
+      count: batchSize,
+    };
+    const response = await plaid.transactionsSync(request);
+    const data = response.data;
+    // Add this page of results
+    added = added.concat(data.added);
+    modified = modified.concat(data.modified);
+    removed = removed.concat(data.removed);
+    hasMore = data.has_more;
+    // Update cursor to the next cursor
+    cursor = data.next_cursor;
   }
+  /* eslint-enable no-await-in-loop */
   return { added, modified, removed, cursor, accessToken };
 };
 
@@ -87,7 +91,13 @@ const updateTransactions = async (plaidItemId) => {
 
   const {data: {accounts}} = await plaid.accountsGet(request);
 
-  // Update the DB.
+  // Apply the full diff and only then advance the cursor. The cursor must move
+  // last so it is never advanced past changes we haven't stored: if any write
+  // below throws, the cursor stays put and the next sync replays this same diff
+  // (the writes are idempotent — upserts keyed on plaid IDs and delete-by-id).
+  // In production you'd wrap these four writes plus the cursor update in a single
+  // DB transaction so the diff and cursor commit atomically; we keep them as
+  // separate statements here for readability in the sample.
   await createAccounts(plaidItemId, accounts);
   await createOrUpdateTransactions(added.concat(modified));
   // Extract transaction IDs from removed objects

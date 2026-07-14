@@ -54,7 +54,7 @@ router.post(
     const usernameExists = await retrieveUserByUsername(username);
     // prevent duplicates
     if (usernameExists)
-      throw new Boom('Username already exists', { statusCode: 409 });
+      throw new Boom.Boom('Username already exists', { statusCode: 409 });
     const newUser = await createUser(username);
     res.json(sanitizeUsers(newUser));
   })
