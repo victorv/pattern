@@ -13,20 +13,18 @@ const {
  * different operations are needed to update an item based on the the error_code
  * that is encountered.
  *
- * @param {string} plaidItemId the Plaid ID of an item.
+ * @param {number} itemId the (local) ID of an item.
  * @param {Object} error the error received from the webhook.
  */
-const itemErrorHandler = async (plaidItemId, error) => {
+const itemErrorHandler = async (itemId, error) => {
   const { error_code: errorCode } = error;
   switch (errorCode) {
-    case 'ITEM_LOGIN_REQUIRED': {
-      const { id: itemId } = await retrieveItemByPlaidItemId(plaidItemId);
+    case 'ITEM_LOGIN_REQUIRED':
       await updateItemStatus(itemId, 'bad');
       break;
-    }
     default:
       console.log(
-        `WEBHOOK: ITEMS: Plaid item id ${plaidItemId}: unhandled ITEM error`
+        `WEBHOOK: ITEMS: item id ${itemId}: unhandled ITEM error`
       );
   }
 };
@@ -52,37 +50,40 @@ const itemsHandler = async (requestBody, io) => {
     if (webhookCode) io.emit(webhookCode, { itemId, errorCode });
   };
 
+  // The item may have been deleted locally while Plaid still delivers webhooks
+  // for it (see the same guard in plaid.js). If it's gone, there's nothing to
+  // update, so ignore the webhook rather than crashing on a missing row.
+  const item = await retrieveItemByPlaidItemId(plaidItemId);
+  if (item == null) {
+    console.log(
+      `WEBHOOK: ITEMS: ${webhookCode}: no local item for Plaid item id ${plaidItemId}; ignoring`
+    );
+    return;
+  }
+  const { id: itemId } = item;
+
   switch (webhookCode) {
     case 'WEBHOOK_UPDATE_ACKNOWLEDGED':
-      serverLogAndEmitSocket('is updated', plaidItemId, error);
+      serverLogAndEmitSocket('is updated', itemId);
       break;
-    case 'ERROR': {
-      itemErrorHandler(plaidItemId, error);
-      const { id: itemId } = await retrieveItemByPlaidItemId(plaidItemId);
+    case 'ERROR':
+      await itemErrorHandler(itemId, error);
       serverLogAndEmitSocket(
         `ERROR: ${error.error_code}: ${error.error_message}`,
         itemId,
         error.error_code
       );
       break;
-    }
     case 'PENDING_EXPIRATION':
-    case 'PENDING_DISCONNECT': {
-      const { id: itemId } = await retrieveItemByPlaidItemId(plaidItemId);
+    case 'PENDING_DISCONNECT':
       await updateItemStatus(itemId, 'bad');
       serverLogAndEmitSocket(
         `user needs to re-enter login credentials`,
-        itemId,
-        error
+        itemId
       );
       break;
-    }
     default:
-      serverLogAndEmitSocket(
-        'unhandled webhook type received.',
-        plaidItemId,
-        error
-      );
+      serverLogAndEmitSocket('unhandled webhook type received.', itemId);
   }
 };
 

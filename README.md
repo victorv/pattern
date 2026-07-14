@@ -104,7 +104,7 @@ Pattern consists of multiple components:
 
 # Plaid Pattern - Client
 
-The Pattern web client is written in JavaScript using [React]. It presents a basic [Link][plaid-link] workflow to the user, including an implementation of [OAuth][plaid-oauth] as well as a demonstration of [Link update mode][plaid-link-update-mode]. The sample app presents a user's net worth, categorized spending as well as a simple dashboard displaying linked accounts and transactions. The app runs on port 3001 by default.
+The Pattern web client is written in TypeScript using [React]. It presents a basic [Link][plaid-link] workflow to the user, including an implementation of [OAuth][plaid-oauth] as well as a demonstration of [Link update mode][plaid-link-update-mode]. The sample app presents a user's net worth, categorized spending as well as a simple dashboard displaying linked accounts and transactions. The app runs on port 3001 by default.
 
 ## Key concepts
 
@@ -344,7 +344,6 @@ Plaid Pattern is a demo app that is intended to be used only for the purpose of 
 [update-transactions]: /server/update_transactions.js
 [transactions-webhooks]: https://plaid.com/docs/#transactions-webhooks
 [users-routes]: server/routes/users.js
-[vscode-debugging]: https://code.visualstudio.com/docs/editor/debugging
 [client-img]: docs/pattern_screenshot.jpg
 [client-readme]: #plaid-pattern---client
 [express]: https://expressjs.com/
