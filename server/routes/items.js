@@ -150,7 +150,7 @@ router.delete(
         error.response?.data ?? error.message
       );
       throw new Boom.Boom('Item could not be removed in the Plaid API.', {
-        statusCode: 500,
+        statusCode: error.response?.status ?? 500,
       });
     }
     await deleteItem(itemId);
