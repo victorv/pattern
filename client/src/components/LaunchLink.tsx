@@ -41,7 +41,7 @@ export default function LaunchLink(props: Props) {
     publicToken: string | null,
     metadata: PlaidLinkOnSuccessMetadata
   ) => {
-    // log and save metatdata
+    // log and save metadata
     logSuccess(metadata, props.userId);
     if (props.itemId != null) {
       // update mode: no need to exchange public token
@@ -68,7 +68,7 @@ export default function LaunchLink(props: Props) {
     error: PlaidLinkError | null,
     metadata: PlaidLinkOnExitMetadata
   ) => {
-    // log and save error and metatdata
+    // log and save error and metadata
     logExit(error, metadata, props.userId);
     if (error != null && error.error_code === 'INVALID_LINK_TOKEN') {
       await generateLinkToken(props.userId, props.itemId);
@@ -98,13 +98,13 @@ export default function LaunchLink(props: Props) {
   };
 
   if (props.isOauth) {
-    config.receivedRedirectUri = window.location.href; // add additional receivedRedirectUri config when handling an OAuth reidrect
+    config.receivedRedirectUri = window.location.href; // add additional receivedRedirectUri config when handling an OAuth redirect
   }
 
   const { open, ready } = usePlaidLink(config);
 
   useEffect(() => {
-    // initiallizes Link automatically
+    // initializes Link automatically
     if (props.isOauth && ready) {
       open();
     } else if (ready) {

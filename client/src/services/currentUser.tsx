@@ -138,7 +138,7 @@ export default function useCurrentUser() {
   const context = useContext(CurrentUserContext);
 
   if (!context) {
-    throw new Error(`useUsers must be used within a UsersProvider`);
+    throw new Error(`useCurrentUser must be used within a CurrentUserProvider`);
   }
 
   return context;

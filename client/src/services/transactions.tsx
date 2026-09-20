@@ -102,7 +102,7 @@ export function TransactionsProvider(props: any) {
   }, []);
 
   /**
-   * @desc Will Delete all transactions that belong to an individual Item.
+   * @desc Will delete all transactions that belong to an individual Item.
    * There is no api request as apiDeleteItemById in items delete all related transactions
    */
   const deleteTransactionsByItemId = useCallback(itemId => {
@@ -110,7 +110,7 @@ export function TransactionsProvider(props: any) {
   }, []);
 
   /**
-   * @desc Will Delete all transactions that belong to an individual User.
+   * @desc Will delete all transactions that belong to an individual User.
    * There is no api request as apiDeleteItemById in items delete all related transactions
    */
   const deleteTransactionsByUserId = useCallback(userId => {
