@@ -77,7 +77,7 @@ export function ItemsProvider(props: any) {
   }, []);
 
   /**
-   * @desc Will deletes Item by itemId.
+   * @desc Will delete Item by itemId.
    */
   const deleteItemById = useCallback(
     async (id, userId) => {
